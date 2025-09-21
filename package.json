@@ -3,10 +3,28 @@
   "displayName": "Auto Run Dev",
   "publisher": "KrishPatel",
   "repository": {
+    "type": "git",
     "url": "https://github.com/KrishPatel1605/AutoRunDev"
   },
+  "bugs": {
+    "url": "https://github.com/KrishPatel1605/AutoRunDev/issues"
+  },
+  "homepage": "https://github.com/KrishPatel1605/AutoRunDev#readme",
+  "keywords": [
+    "development",
+    "automation",
+    "frontend",
+    "backend",
+    "terminal",
+    "project-management"
+  ],
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
   "description": "VS Code extension for automatically detecting and managing multiple dev projects. Start, stop, and configure all your workspace projects from a single sidebar interface.",
-  "version": "0.0.3",
+  "version": "0.0.7",
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.104.0"
   },
