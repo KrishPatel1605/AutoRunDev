@@ -1,6 +1,7 @@
 {
   "name": "autodev",
   "displayName": "AutoDev",
+  "publisher": "KrishPatel",
   "description": "Automatically detect frontend/backend and run them together",
   "version": "0.0.3",
   "engines": {
