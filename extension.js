@@ -320,12 +320,12 @@ class AutoRunDevProvider {
   getChildren() {
     return [
       this.makeItem("Start All Projects", "autorundev.start"),
-      this.makeItem("Auto Config (Scan Folders)", "autorundev.autoconfig"),
+      this.makeItem("Scan & Configure Projects", "autorundev.autoconfig"),
       this.makeItem("Add Custom Project", "autorundev.add"),
       this.makeItem("Remove Project", "autorundev.remove"),
       this.makeItem("Run All Projects", "autorundev.runAll"),
-      this.makeItem("Stop All", "autorundev.stop"),
-      this.makeItem("Restart All", "autorundev.restart")
+      this.makeItem("Stop All Projects", "autorundev.stop"),
+      this.makeItem("Restart All Projects", "autorundev.restart")
     ];
   }
   makeItem(label, command) {
