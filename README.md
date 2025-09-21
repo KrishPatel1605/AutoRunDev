@@ -1,14 +1,14 @@
-# AutoDev - Multi-Project Development Manager
+# AutoRunDev - Multi-Project Development Manager
 
-[![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](https://marketplace.visualstudio.com/items?itemName=KrishPatel.autodev)
-[![GitHub](https://img.shields.io/github/license/KrishPatel1605/AutoDev)](https://github.com/KrishPatel1605/AutoDev)
+[![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](https://marketplace.visualstudio.com/items?itemName=KrishPatel.autorundev)
+[![GitHub](https://img.shields.io/github/license/KrishPatel1605/AutoRunDev)](https://github.com/KrishPatel1605/AutoRunDev)
 
-AutoDev is a powerful VS Code extension that simplifies multi-project development by automatically detecting, configuring, and running multiple projects within your workspace. Whether you're working on a monorepo, microservices, or just multiple related projects, AutoDev streamlines your development workflow.
+AutoRunDev is a powerful VS Code extension that simplifies multi-project development by automatically detecting, configuring, and running multiple projects within your workspace. Whether you're working on a monorepo, microservices, or just multiple related projects, AutoRunDev streamlines your development workflow.
 
 ## 🚀 Features
 
 - **🔍 Automatic Project Detection**: Scans your workspace and automatically detects different project types
-- **🎯 Smart Configuration**: Generates `.autodev.json` configuration based on detected projects
+- **🎯 Smart Configuration**: Generates `.autorundev.json` configuration based on detected projects
 - **▶️ Bulk Project Management**: Start, stop, and restart all projects with a single click
 - **🛠️ Multi-Language Support**: Supports Node.js, Python, Go, Java, PHP, Rust, and static web projects
 - **📋 Easy Sidebar Management**: Convenient tree view in VS Code sidebar for quick access
@@ -17,7 +17,7 @@ AutoDev is a powerful VS Code extension that simplifies multi-project developmen
 
 ## 📦 Supported Project Types
 
-AutoDev automatically detects and configures the following project types:
+AutoRunDev automatically detects and configures the following project types:
 
 | Technology | Detection Files | Default Command |
 |------------|----------------|-----------------|
@@ -35,38 +35,38 @@ AutoDev automatically detects and configures the following project types:
 ### From VS Code Marketplace
 1. Open VS Code
 2. Go to Extensions (Ctrl+Shift+X)
-3. Search for "AutoDev"
+3. Search for "AutoRunDev"
 4. Click Install
 
 ### Manual Installation
-1. Clone this repository: `git clone https://github.com/KrishPatel1605/AutoDev.git`
+1. Clone this repository: `git clone https://github.com/KrishPatel1605/AutoRunDev.git`
 2. Open the project in VS Code
 3. Press F5 to run the extension in a new Extension Development Host window
 
 ## 🎯 Quick Start
 
 1. **Open Your Workspace**: Open a folder containing multiple projects in VS Code
-2. **Access AutoDev**: Look for the AutoDev panel in the VS Code sidebar
-3. **Auto Configure**: Click "Auto Config (Scan Folders)" to automatically detect all projects
+2. **Access AutoRunDev**: Look for the AutoRunDev panel in the VS Code sidebar
+3. **Auto Configure**: Click "Scan & Configure Projects" to automatically detect all projects
 4. **Start Projects**: Click "Start All Projects" to run all detected projects
 
 ## 📋 Usage
 
 ### Sidebar Commands
 
-The AutoDev sidebar provides these convenient commands:
+The AutoRunDev sidebar provides these convenient commands:
 
 - **🚀 Start All Projects**: Starts all configured projects in separate terminals
-- **🔍 Auto Config (Scan Folders)**: Scans workspace and regenerates `.autodev.json`
+- **🔍 Scan & Configure Projects**: Scans workspace and regenerates `.autorundev.json`
 - **➕ Add Custom Project**: Manually add a project with custom configuration
 - **🗑️ Remove Project**: Remove a specific project from configuration
 - **▶️ Run All Projects**: Same as "Start All Projects"
-- **⏹️ Stop All**: Stops all running project terminals
-- **🔄 Restart All**: Stops and restarts all projects
+- **⏹️ Stop All Projects**: Stops all running project terminals
+- **🔄 Restart All Projects**: Stops and restarts all projects
 
 ### Configuration File
 
-AutoDev uses a `.autodev.json` file in your workspace root to store project configurations:
+AutoRunDev uses a `.autorundev.json` file in your workspace root to store project configurations:
 
 ```json
 {
@@ -87,7 +87,7 @@ AutoDev uses a `.autodev.json` file in your workspace root to store project conf
 
 ### Manual Configuration
 
-You can manually edit `.autodev.json` or use the "Add Custom Project" command to add projects with specific requirements:
+You can manually edit `.autorundev.json` or use the "Add Custom Project" command to add projects with specific requirements:
 
 - **Project Name**: Unique identifier for your project
 - **Path**: Relative path from workspace root (e.g., `./my-app`)
@@ -97,14 +97,14 @@ You can manually edit `.autodev.json` or use the "Add Custom Project" command to
 
 ### Custom Start Commands
 
-For Node.js projects, AutoDev intelligently selects start commands based on available scripts:
+For Node.js projects, AutoRunDev intelligently selects start commands based on available scripts:
 - Prioritizes `npm run dev` if available
 - Falls back to `npm start`
 - Uses `npm run serve` as alternative
 
 ### Folder Exclusions
 
-AutoDev automatically excludes common non-project folders:
+AutoRunDev automatically excludes common non-project folders:
 - Hidden folders (starting with `.`)
 - `node_modules`
 - `dist`
@@ -123,7 +123,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ### Reporting Issues
 
-If you encounter any issues or have feature requests, please [open an issue](https://github.com/KrishPatel1605/AutoDev/issues) on GitHub.
+If you encounter any issues or have feature requests, please [open an issue](https://github.com/KrishPatel1605/AutoRunDev/issues) on GitHub.
 
 ## 📄 License
 

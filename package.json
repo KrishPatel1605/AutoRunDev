@@ -1,8 +1,11 @@
 {
-  "name": "autodev",
-  "displayName": "AutoDev",
+  "name": "autorundev",
+  "displayName": "Auto Run Dev",
   "publisher": "KrishPatel",
-  "description": "Automatically detect frontend/backend and run them together",
+  "repository": {
+    "url": "https://github.com/KrishPatel1605/AutoRunDev"
+  },
+  "description": "VS Code extension for automatically detecting and managing multiple dev projects. Start, stop, and configure all your workspace projects from a single sidebar interface.",
   "version": "0.0.3",
   "engines": {
     "vscode": "^1.104.0"
@@ -11,35 +14,56 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:autodevView"
+    "onView:autorundevView"
   ],
   "main": "./extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "autodev-sidebar",
-          "title": "AutoDev",
+          "id": "autorundev-sidebar",
+          "title": "AutoRunDev",
           "icon": "images/icon.svg"
         }
       ]
     },
     "views": {
-      "autodev-sidebar": [
+      "autorundev-sidebar": [
         {
-          "id": "autodevView",
+          "id": "autorundevView",
           "name": "Controls"
         }
       ]
     },
     "commands": [
-      { "command": "autodev.start", "title": "AutoDev: Start All Projects" },
-      { "command": "autodev.autoconfig", "title": "AutoDev: Auto Config (Scan Folders)" },
-      { "command": "autodev.add", "title": "AutoDev: Add Custom Project" },
-      { "command": "autodev.remove", "title": "AutoDev: Remove Project" },
-      { "command": "autodev.runAll", "title": "AutoDev: Run All Projects" },
-      { "command": "autodev.stop", "title": "AutoDev: Stop All Projects" },
-      { "command": "autodev.restart", "title": "AutoDev: Restart All Projects" }
+      {
+        "command": "autorundev.start",
+        "title": "Start All Projects"
+      },
+      {
+        "command": "autorundev.autoconfig",
+        "title": "Scan & Configure Projects"
+      },
+      {
+        "command": "autorundev.add",
+        "title": "Add Custom Project"
+      },
+      {
+        "command": "autorundev.remove",
+        "title": "Remove Project"
+      },
+      {
+        "command": "autorundev.runAll",
+        "title": "Run All Projects"
+      },
+      {
+        "command": "autorundev.stop",
+        "title": "Stop All Projects"
+      },
+      {
+        "command": "autorundev.restart",
+        "title": "Restart All Projects"
+      }
     ]
   },
   "scripts": {
