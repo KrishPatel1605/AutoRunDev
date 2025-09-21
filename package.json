@@ -2,7 +2,7 @@
   "name": "autodev",
   "displayName": "AutoDev",
   "description": "Automatically detect frontend/backend and run them together",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.104.0"
   },
@@ -10,15 +10,35 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:autodev.start"
+    "onView:autodevView"
   ],
   "main": "./extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "autodev-sidebar",
+          "title": "AutoDev",
+          "icon": "images/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "autodev-sidebar": [
+        {
+          "id": "autodevView",
+          "name": "Controls"
+        }
+      ]
+    },
     "commands": [
-      {
-        "command": "autodev.start",
-        "title": "AutoDev: Start Project"
-      }
+      { "command": "autodev.start", "title": "AutoDev: Start All Projects" },
+      { "command": "autodev.autoconfig", "title": "AutoDev: Auto Config (Scan Folders)" },
+      { "command": "autodev.add", "title": "AutoDev: Add Custom Project" },
+      { "command": "autodev.remove", "title": "AutoDev: Remove Project" },
+      { "command": "autodev.runAll", "title": "AutoDev: Run All Projects" },
+      { "command": "autodev.stop", "title": "AutoDev: Stop All Projects" },
+      { "command": "autodev.restart", "title": "AutoDev: Restart All Projects" }
     ]
   },
   "scripts": {
