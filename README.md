@@ -1,65 +1,150 @@
-# autodev README
+# AutoDev - Multi-Project Development Manager
 
-This is the README for your extension "autodev". After writing up a brief description, we recommend including the following sections.
+[![VS Code Extension](https://img.shields.io/badge/VS%20Code-Extension-blue.svg)](https://marketplace.visualstudio.com/items?itemName=KrishPatel.autodev)
+[![GitHub](https://img.shields.io/github/license/KrishPatel1605/AutoDev)](https://github.com/KrishPatel1605/AutoDev)
 
-## Features
+AutoDev is a powerful VS Code extension that simplifies multi-project development by automatically detecting, configuring, and running multiple projects within your workspace. Whether you're working on a monorepo, microservices, or just multiple related projects, AutoDev streamlines your development workflow.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+## 🚀 Features
 
-For example if there is an image subfolder under your extension project workspace:
+- **🔍 Automatic Project Detection**: Scans your workspace and automatically detects different project types
+- **🎯 Smart Configuration**: Generates `.autodev.json` configuration based on detected projects
+- **▶️ Bulk Project Management**: Start, stop, and restart all projects with a single click
+- **🛠️ Multi-Language Support**: Supports Node.js, Python, Go, Java, PHP, Rust, and static web projects
+- **📋 Easy Sidebar Management**: Convenient tree view in VS Code sidebar for quick access
+- **⚙️ Custom Project Support**: Add custom projects with specific commands
+- **🔄 Live Terminal Management**: Manages separate terminals for each project
 
-\!\[feature X\]\(images/feature-x.png\)
+## 📦 Supported Project Types
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+AutoDev automatically detects and configures the following project types:
 
-## Requirements
+| Technology | Detection Files | Default Command |
+|------------|----------------|-----------------|
+| **Node.js** | `package.json` | `npm run dev` / `npm start` |
+| **Python** | `requirements.txt`, `pyproject.toml`, `setup.py` | `python main.py` |
+| **Go** | `go.mod` | `go run .` |
+| **Java (Maven)** | `pom.xml` | `mvn spring-boot:run` |
+| **Java (Gradle)** | `build.gradle`, `build.gradle.kts` | `./gradlew bootRun` |
+| **PHP** | `composer.json` | `php -S localhost:8000` |
+| **Rust** | `Cargo.toml` | `cargo run` |
+| **Static Web** | `index.html`, `index.php`, `app.js`, `server.js` | `python -m http.server 8000` |
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## 🛠️ Installation
 
-## Extension Settings
+### From VS Code Marketplace
+1. Open VS Code
+2. Go to Extensions (Ctrl+Shift+X)
+3. Search for "AutoDev"
+4. Click Install
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+### Manual Installation
+1. Clone this repository: `git clone https://github.com/KrishPatel1605/AutoDev.git`
+2. Open the project in VS Code
+3. Press F5 to run the extension in a new Extension Development Host window
 
-For example:
+## 🎯 Quick Start
 
-This extension contributes the following settings:
+1. **Open Your Workspace**: Open a folder containing multiple projects in VS Code
+2. **Access AutoDev**: Look for the AutoDev panel in the VS Code sidebar
+3. **Auto Configure**: Click "Auto Config (Scan Folders)" to automatically detect all projects
+4. **Start Projects**: Click "Start All Projects" to run all detected projects
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## 📋 Usage
 
-## Known Issues
+### Sidebar Commands
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+The AutoDev sidebar provides these convenient commands:
 
-## Release Notes
+- **🚀 Start All Projects**: Starts all configured projects in separate terminals
+- **🔍 Auto Config (Scan Folders)**: Scans workspace and regenerates `.autodev.json`
+- **➕ Add Custom Project**: Manually add a project with custom configuration
+- **🗑️ Remove Project**: Remove a specific project from configuration
+- **▶️ Run All Projects**: Same as "Start All Projects"
+- **⏹️ Stop All**: Stops all running project terminals
+- **🔄 Restart All**: Stops and restarts all projects
 
-Users appreciate release notes as you update your extension.
+### Configuration File
 
-### 1.0.0
+AutoDev uses a `.autodev.json` file in your workspace root to store project configurations:
 
-Initial release of ...
+```json
+{
+  "frontend": {
+    "path": "./frontend",
+    "start": "npm run dev"
+  },
+  "backend": {
+    "path": "./backend",
+    "start": "npm start"
+  },
+  "api": {
+    "path": "./api",
+    "start": "python main.py"
+  }
+}
+```
 
-### 1.0.1
+### Manual Configuration
 
-Fixed issue #.
+You can manually edit `.autodev.json` or use the "Add Custom Project" command to add projects with specific requirements:
 
-### 1.1.0
+- **Project Name**: Unique identifier for your project
+- **Path**: Relative path from workspace root (e.g., `./my-app`)
+- **Start Command**: Command to run the project (e.g., `npm run dev`)
 
-Added features X, Y, and Z.
+## 🔧 Advanced Usage
+
+### Custom Start Commands
+
+For Node.js projects, AutoDev intelligently selects start commands based on available scripts:
+- Prioritizes `npm run dev` if available
+- Falls back to `npm start`
+- Uses `npm run serve` as alternative
+
+### Folder Exclusions
+
+AutoDev automatically excludes common non-project folders:
+- Hidden folders (starting with `.`)
+- `node_modules`
+- `dist`
+- `build`
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Development Setup
+
+1. Clone the repository
+2. Run `npm install` to install dependencies
+3. Press F5 to start debugging
+4. Make your changes and test in the Extension Development Host
+
+### Reporting Issues
+
+If you encounter any issues or have feature requests, please [open an issue](https://github.com/KrishPatel1605/AutoDev/issues) on GitHub.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built for the VS Code community
+- Inspired by the need for efficient multi-project development workflows
+
+## 📈 Roadmap
+
+- [ ] Project health monitoring
+- [ ] Environment variable management
+- [ ] Docker support
+- [ ] Custom terminal themes
+- [ ] Project dependency visualization
+- [ ] Hot reload configuration changes
 
 ---
 
-## Working with Markdown
+**Happy Coding!** 🎉
 
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Made with ❤️ by [Krish Patel](https://github.com/KrishPatel1605)
