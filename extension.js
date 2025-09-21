@@ -1,36 +1,75 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-const vscode = require('vscode');
+const vscode = require("vscode");
+const fs = require("fs");
+const path = require("path");
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-
-/**
- * @param {vscode.ExtensionContext} context
- */
 function activate(context) {
+  let disposable = vscode.commands.registerCommand("autodev.start", async () => {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "autodev" is now active!');
+    if (!workspaceFolders) {
+      vscode.window.showErrorMessage("No workspace open!");
+      return;
+    }
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('autodev.helloWorld', function () {
-		// The code you place here will be executed every time your command is executed
+    const rootPath = workspaceFolders[0].uri.fsPath;
+    const configPath = path.join(rootPath, ".autodev.json");
 
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from AutoDev!');
-	});
+    let config;
 
-	context.subscriptions.push(disposable);
+    if (!fs.existsSync(configPath)) {
+      config = autoDetect(rootPath);
+      fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+      vscode.window.showInformationMessage(".autodev.json created automatically!");
+    } else {
+      const data = fs.readFileSync(configPath, "utf-8");
+      config = JSON.parse(data);
+    }
+
+    runInTerminal("Frontend", config.frontend.path, config.frontend.start, rootPath);
+    runInTerminal("Backend", config.backend.path, config.backend.start, rootPath);
+  });
+
+  context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
+function autoDetect(rootPath) {
+  const candidates = {
+    frontend: ["frontend", "client", "web", "ui"],
+    backend: ["backend", "server", "api"]
+  };
+
+  function detect(typeList) {
+    for (const name of typeList) {
+      const fullPath = path.join(rootPath, name);
+      if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isDirectory()) {
+        const pkgPath = path.join(fullPath, "package.json");
+        if (fs.existsSync(pkgPath)) {
+          const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+          if (pkg.scripts && pkg.scripts.dev) return { path: `./${name}`, start: "npm run dev" };
+          if (pkg.scripts && pkg.scripts.start) return { path: `./${name}`, start: "npm start" };
+        }
+        return { path: `./${name}`, start: "npm start" }; // fallback
+      }
+    }
+    return { path: ".", start: "echo No folder detected" };
+  }
+
+  return {
+    frontend: detect(candidates.frontend),
+    backend: detect(candidates.backend)
+  };
+}
+
+function runInTerminal(name, dir, command, rootPath) {
+  const term = vscode.window.createTerminal(name);
+  term.show(true);
+  term.sendText(`cd "${path.join(rootPath, dir)}"`);
+  term.sendText(command);
+}
+
 function deactivate() {}
 
 module.exports = {
-	activate,
-	deactivate
-}
+  activate,
+  deactivate
+};

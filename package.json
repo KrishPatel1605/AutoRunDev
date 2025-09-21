@@ -1,7 +1,7 @@
 {
   "name": "autodev",
   "displayName": "AutoDev",
-  "description": "",
+  "description": "Automatically detect frontend/backend and run them together",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.104.0"
@@ -9,13 +9,17 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:autodev.start"
+  ],
   "main": "./extension.js",
   "contributes": {
-    "commands": [{
-      "command": "autodev.helloWorld",
-      "title": "Hello World"
-    }]
+    "commands": [
+      {
+        "command": "autodev.start",
+        "title": "AutoDev: Start Project"
+      }
+    ]
   },
   "scripts": {
     "lint": "eslint .",
