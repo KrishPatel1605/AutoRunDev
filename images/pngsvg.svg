@@ -1,0 +1,56 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer circle -->
+  <circle 
+    cx="16" 
+    cy="16" 
+    r="14" 
+    fill="none" 
+    stroke="#FF9520" 
+    stroke-width="2"
+    opacity="0.8"
+  />
+  
+  <!-- Inner circle for depth -->
+  <circle 
+    cx="16" 
+    cy="16" 
+    r="12" 
+    fill="none" 
+    stroke="#FF9520" 
+    stroke-width="1"
+    opacity="0.3"
+  />
+  
+  <!-- Play button triangle -->
+  <path 
+    d="M12 10 L12 22 L22 16 Z" 
+    fill="#FF9520"
+    stroke="none"
+    opacity="0.9"
+  />
+  
+  <!-- Accent dot -->
+  <circle 
+    cx="24" 
+    cy="8" 
+    r="2" 
+    fill="#FF9520" 
+    opacity="0.6"
+  />
+  
+  <!-- Corner brackets -->
+  <path 
+    d="M4 12 L4 8 L8 8" 
+    fill="none" 
+    stroke="#FF9520" 
+    stroke-width="1" 
+    opacity="0.4"
+  />
+  <path 
+    d="M28 20 L28 24 L24 24" 
+    fill="none" 
+    stroke="#FF9520" 
+    stroke-width="1" 
+    opacity="0.4"
+  />
+</svg>
