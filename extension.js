@@ -3,28 +3,477 @@ const fs = require("fs");
 const path = require("path");
 
 let terminals = []; // keep track of running terminals
+let webviewPanel = null;
 
 function activate(context) {
-  // Tree view sidebar
-  const treeDataProvider = new AutoRunDevProvider();
-  vscode.window.createTreeView("autorundevView", { treeDataProvider });
+  // Register webview provider
+  const provider = new AutoRunDevWebviewProvider(context.extensionUri);
+  
+  // Register the webview view
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider('autorundevView', provider)
+  );
 
   // Register commands
   context.subscriptions.push(
-    vscode.commands.registerCommand("autorundev.start", startProject),
-    vscode.commands.registerCommand("autorundev.autoconfig", autoConfig),
-    vscode.commands.registerCommand("autorundev.add", addCustomProject),
-    vscode.commands.registerCommand("autorundev.runAll", runAllProjects),
-    vscode.commands.registerCommand("autorundev.stop", stopAllProjects),
-    vscode.commands.registerCommand("autorundev.restart", restartAllProjects),
-    vscode.commands.registerCommand("autorundev.remove", removeProject)
+    vscode.commands.registerCommand("autorundev.start", () => startProject(provider)),
+    vscode.commands.registerCommand("autorundev.autoconfig", () => autoConfig(provider)),
+    vscode.commands.registerCommand("autorundev.add", () => addCustomProject(provider)),
+    vscode.commands.registerCommand("autorundev.runAll", () => runAllProjects(provider)),
+    vscode.commands.registerCommand("autorundev.stop", () => stopAllProjects(provider)),
+    vscode.commands.registerCommand("autorundev.restart", () => restartAllProjects(provider)),
+    vscode.commands.registerCommand("autorundev.remove", () => removeProject(provider))
   );
+}
+
+class AutoRunDevWebviewProvider {
+  constructor(extensionUri) {
+    this._extensionUri = extensionUri;
+    this._view = null;
+  }
+
+  resolveWebviewView(webviewView, context, _token) {
+    this._view = webviewView;
+
+    webviewView.webview.options = {
+      enableScripts: true,
+      localResourceRoots: [this._extensionUri]
+    };
+
+    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+
+    // Handle messages from the webview
+    webviewView.webview.onDidReceiveMessage(
+      message => {
+        switch (message.command) {
+          case 'startAll':
+            startProject(this);
+            break;
+          case 'stopAll':
+            stopAllProjects(this);
+            break;
+          case 'addProject':
+            addCustomProject(this);
+            break;
+          case 'removeProject':
+            removeProject(this);
+            break;
+          case 'autoConfig':
+            autoConfig(this);
+            break;
+          case 'runAll':
+            runAllProjects(this);
+            break;
+          case 'restart':
+            restartAllProjects(this);
+            break;
+          case 'playTerminal':
+            playTerminal(message.name, this);
+            break;
+          case 'stopTerminal':
+            stopTerminal(message.name, this);
+            break;
+          case 'restartTerminal':
+            restartTerminal(message.name, this);
+            break;
+          case 'deleteTerminal':
+            deleteTerminal(message.name, this);
+            break;
+        }
+      },
+      undefined,
+      []
+    );
+
+    // Send initial terminal data
+    this.updateTerminals();
+    
+    // Update terminals periodically to reflect current state
+    setInterval(() => {
+      this.updateTerminals();
+    }, 2000);
+  }
+
+  updateTerminals() {
+    if (this._view) {
+      const config = this._getCurrentConfig();
+      const configProjects = Object.keys(config);
+      
+      // Create terminal data that includes all projects from config
+      const terminalData = configProjects.map(projectName => {
+        const runningTerminal = terminals.find(t => t.name === projectName);
+        return {
+          name: projectName,
+          status: runningTerminal && runningTerminal.exitStatus === undefined ? 'running' : 'stopped',
+          port: this._extractPort(projectName)
+        };
+      });
+
+      this._view.webview.postMessage({
+        command: 'updateTerminals',
+        terminals: terminalData
+      });
+    }
+  }
+
+  _extractPort(terminalName) {
+    // Try to extract port from common patterns
+    const config = this._getCurrentConfig();
+    if (config[terminalName]) {
+      const command = config[terminalName].start;
+      const portMatch = command.match(/:(\d{4,5})/);
+      return portMatch ? portMatch[1] : null;
+    }
+    return null;
+  }
+
+  _getCurrentConfig() {
+    const rootPath = getWorkspaceRoot();
+    if (!rootPath) return {};
+    return readConfig(rootPath);
+  }
+
+  _getHtmlForWebview(webview) {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoRunDev</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--vscode-font-family);
+            background: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            padding: 16px;
+            min-height: 100vh;
+            font-size: var(--vscode-font-size);
+        }
+
+        .container {
+            max-width: 100%;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .control-button {
+            background: #007acc;
+            border: 1px solid #0e639c;
+            color: white;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 45.6px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .control-button:hover {
+            background: #1177bb;
+            border-color: #1177bb;
+        }
+
+        .control-button:active {
+            background: #005a9e;
+            transform: translateY(1px);
+        }
+
+        .play-button::before {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 10px solid white;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            margin-right: 8px;
+        }
+
+        .stop-button::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: white;
+            margin-right: 8px;
+        }
+
+        .add-button::before {
+            content: '+';
+            font-size: 18px;
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        .trash-button::before {
+            content: '🗑️';
+            margin-right: 6px;
+            font-size: 14px;
+        }
+
+        .config-button {
+            background: #007acc;
+            border: 1px solid #0e639c;
+            color: white;
+            padding: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .config-button:hover {
+            background: #1177bb;
+            border-color: #1177bb;
+        }
+
+        .terminal-panel {
+            background: var(--vscode-sideBar-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 14px;
+            min-height: 200px;
+        }
+
+        .panel-header {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .terminal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .terminal-item {
+            background: var(--vscode-editor-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 3px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .terminal-name {
+            color: var(--vscode-editor-foreground);
+            font-weight: 500;
+        }
+
+        .terminal-status {
+            color: var(--vscode-terminal-ansiGreen);
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .terminal-status.stopped {
+            color: var(--vscode-terminal-ansiRed);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-indicator.running {
+            background-color: var(--vscode-terminal-ansiGreen);
+            box-shadow: 0 0 4px var(--vscode-terminal-ansiGreen);
+        }
+
+        .status-indicator.stopped {
+            background-color: var(--vscode-terminal-ansiRed);
+        }
+
+        .terminal-controls {
+            display: flex;
+            gap: 3px;
+        }
+
+        .mini-button {
+            background: #007acc;
+            border: none;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 9px;
+            transition: background 0.2s ease;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mini-button:hover {
+            background: #1177bb;
+        }
+
+        .mini-button.play::before {
+            content: '▶';
+        }
+
+        .mini-button.stop::before {
+            content: '⏹';
+        }
+
+        .mini-button.restart::before {
+            content: '🔄';
+        }
+
+        .mini-button.delete::before {
+            content: '🗑';
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--vscode-descriptionForeground);
+            font-style: italic;
+            padding: 20px;
+            font-size: 11px;
+        }
+
+        .section-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            padding-top: 12px;
+            border-top: 1px solid var(--vscode-panel-border);
+        }
+
+        .section-buttons .mini-button {
+            padding: 6px 10px;
+            font-size: 10px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Control Grid -->
+        <div class="control-grid">
+            <button class="control-button play-button" onclick="sendCommand('startAll')">
+                Start
+            </button>
+            <button class="control-button stop-button" onclick="sendCommand('stopAll')">
+                Stop
+            </button>
+            <button class="control-button add-button" onclick="sendCommand('addProject')">
+                Add
+            </button>
+            <button class="control-button trash-button" onclick="sendCommand('removeProject')">
+                Remove
+            </button>
+        </div>
+
+        <!-- Auto Config and Restart Row -->
+        <div class="control-grid">
+            <button class="config-button" onclick="sendCommand('autoConfig')">
+                Scan for Projects
+            </button>
+            <button class="config-button restart-button" onclick="sendCommand('restart')">
+                🔄 Restart
+            </button>
+        </div>
+
+        <!-- Terminal Panel -->
+        <div class="terminal-panel">
+            <div class="panel-header">
+                All terminals with their status
+            </div>
+            <div class="terminal-list" id="terminalList">
+                <div class="empty-state">No projects configured</div>
+            </div>
+            <div class="section-buttons">
+                <button class="mini-button play" onclick="sendCommand('runAll')" title="Run All">Play</button>
+                <button class="mini-button stop" onclick="sendCommand('stopAll')" title="Stop All">Stop</button>
+                <button class="mini-button restart" onclick="sendCommand('restart')" title="Restart All">Restart</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+
+        let terminals = [];
+
+        function sendCommand(command, data = {}) {
+            vscode.postMessage({ command, ...data });
+        }
+
+        function renderTerminals() {
+            const terminalList = document.getElementById('terminalList');
+            
+            if (terminals.length === 0) {
+                terminalList.innerHTML = '<div class="empty-state">No projects configured</div>';
+                return;
+            }
+
+            terminalList.innerHTML = terminals.map(terminal => \`
+                <div class="terminal-item">
+                    <div>
+                        <div class="terminal-name">\${terminal.name}</div>
+                        <div class="terminal-status \${terminal.status}">
+                            <span class="status-indicator \${terminal.status}"></span>
+                            \${terminal.status.toUpperCase()}\${terminal.port ? \` (:\${terminal.port})\` : ''}
+                        </div>
+                    </div>
+                    <div class="terminal-controls">
+                        <button class="mini-button play" onclick="sendCommand('playTerminal', {name: '\${terminal.name}'})" title="Start"></button>
+                        <button class="mini-button stop" onclick="sendCommand('stopTerminal', {name: '\${terminal.name}'})" title="Stop"></button>
+                        <button class="mini-button restart" onclick="sendCommand('restartTerminal', {name: '\${terminal.name}'})" title="Restart"></button>
+                        <button class="mini-button delete" onclick="sendCommand('deleteTerminal', {name: '\${terminal.name}'})" title="Delete"></button>
+                    </div>
+                </div>
+            \`).join('');
+        }
+
+        // Listen for messages from the extension
+        window.addEventListener('message', event => {
+            const message = event.data;
+            switch (message.command) {
+                case 'updateTerminals':
+                    terminals = message.terminals;
+                    renderTerminals();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>`;
+  }
 }
 
 /**
  * Start all projects from config
  */
-function startProject() {
+function startProject(provider) {
   const rootPath = getWorkspaceRoot();
   if (!rootPath) return;
 
@@ -36,12 +485,15 @@ function startProject() {
       runInTerminal(projectName, config[projectName].path, config[projectName].start, rootPath);
     }
   });
+
+  // Update the webview
+  setTimeout(() => provider.updateTerminals(), 500);
 }
 
 /**
  * Auto detect and regenerate .autorundev.json by scanning all folders
  */
-function autoConfig() {
+function autoConfig(provider) {
   const rootPath = getWorkspaceRoot();
   if (!rootPath) return;
 
@@ -49,12 +501,14 @@ function autoConfig() {
   const config = scanAllFolders(rootPath);
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   vscode.window.showInformationMessage(".autorundev.json regenerated by scanning all folders!");
+  
+  provider.updateTerminals();
 }
 
 /**
  * Add a custom project manually
  */
-async function addCustomProject() {
+async function addCustomProject(provider) {
   const rootPath = getWorkspaceRoot();
   if (!rootPath) return;
 
@@ -78,12 +532,14 @@ async function addCustomProject() {
 
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   vscode.window.showInformationMessage(`Custom project "${name}" added to .autorundev.json`);
+  
+  provider.updateTerminals();
 }
 
 /**
  * Remove a specific project
  */
-async function removeProject() {
+async function removeProject(provider) {
   const rootPath = getWorkspaceRoot();
   if (!rootPath) return;
 
@@ -106,12 +562,14 @@ async function removeProject() {
   const configPath = path.join(rootPath, ".autorundev.json");
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   vscode.window.showInformationMessage(`Project "${selectedProject}" removed from .autorundev.json`);
+  
+  provider.updateTerminals();
 }
 
 /**
  * Run all projects defined in .autorundev.json
  */
-function runAllProjects() {
+function runAllProjects(provider) {
   const rootPath = getWorkspaceRoot();
   if (!rootPath) return;
 
@@ -128,25 +586,76 @@ function runAllProjects() {
       runInTerminal(projectName, config[projectName].path, config[projectName].start, rootPath);
     }
   });
+
+  setTimeout(() => provider.updateTerminals(), 500);
 }
 
 /**
  * Stop all running terminals
  */
-function stopAllProjects() {
+function stopAllProjects(provider) {
   terminals.forEach(t => t.dispose());
   terminals = [];
   vscode.window.showInformationMessage("All AutoRunDev terminals stopped.");
+  
+  provider.updateTerminals();
 }
 
 /**
  * Restart all projects
  */
-function restartAllProjects() {
-  stopAllProjects();
+function restartAllProjects(provider) {
+  stopAllProjects(provider);
   setTimeout(() => {
-    runAllProjects();
+    runAllProjects(provider);
   }, 1000); // Give a small delay for terminals to close properly
+}
+
+// Individual terminal control functions
+function playTerminal(name, provider) {
+  const rootPath = getWorkspaceRoot();
+  if (!rootPath) return;
+
+  const config = readConfig(rootPath);
+  if (config[name]) {
+    runInTerminal(name, config[name].path, config[name].start, rootPath);
+    setTimeout(() => provider.updateTerminals(), 500);
+  }
+}
+
+function stopTerminal(name, provider) {
+  const terminalToStop = terminals.find(t => t.name === name);
+  if (terminalToStop) {
+    terminalToStop.dispose();
+    terminals = terminals.filter(t => t.name !== name);
+    provider.updateTerminals();
+  }
+}
+
+function restartTerminal(name, provider) {
+  stopTerminal(name, provider);
+  setTimeout(() => {
+    playTerminal(name, provider);
+  }, 1000);
+}
+
+function deleteTerminal(name, provider) {
+  // Stop the terminal if running
+  stopTerminal(name, provider);
+  
+  // Remove from config
+  const rootPath = getWorkspaceRoot();
+  if (!rootPath) return;
+
+  const configPath = path.join(rootPath, ".autorundev.json");
+  let config = {};
+  if (fs.existsSync(configPath)) {
+    config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    delete config[name];
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    vscode.window.showInformationMessage(`Project "${name}" deleted from configuration`);
+    provider.updateTerminals();
+  }
 }
 
 /**
@@ -310,33 +819,8 @@ function runInTerminal(name, dir, command, rootPath) {
   terminals.push(term);
 }
 
-/**
- * Sidebar Provider (TreeView)
- */
-class AutoRunDevProvider {
-  getTreeItem(element) {
-    return element;
-  }
-  getChildren() {
-    return [
-      this.makeItem("Start All Projects", "autorundev.start"),
-      this.makeItem("Scan & Configure Projects", "autorundev.autoconfig"),
-      this.makeItem("Add Custom Project", "autorundev.add"),
-      this.makeItem("Remove Project", "autorundev.remove"),
-      this.makeItem("Run All Projects", "autorundev.runAll"),
-      this.makeItem("Stop All Projects", "autorundev.stop"),
-      this.makeItem("Restart All Projects", "autorundev.restart")
-    ];
-  }
-  makeItem(label, command) {
-    const item = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
-    item.command = { command, title: label };
-    return item;
-  }
-}
-
 function deactivate() {
-  stopAllProjects();
+  stopAllProjects(null);
 }
 
 module.exports = { activate, deactivate };

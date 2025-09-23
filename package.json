@@ -23,7 +23,7 @@
     "theme": "dark"
   },
   "description": "VS Code extension for automatically detecting and managing multiple dev projects. Start, stop, and configure all your workspace projects from a single sidebar interface.",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.104.0"
@@ -49,40 +49,73 @@
       "autorundev-sidebar": [
         {
           "id": "autorundevView",
-          "name": "Controls"
+          "name": "Controls",
+          "type": "webview"
         }
       ]
     },
     "commands": [
       {
         "command": "autorundev.start",
-        "title": "Start All Projects"
+        "title": "Start All Projects",
+        "category": "AutoRunDev"
       },
       {
         "command": "autorundev.autoconfig",
-        "title": "Scan & Configure Projects"
+        "title": "Scan & Configure Projects",
+        "category": "AutoRunDev"
       },
       {
         "command": "autorundev.add",
-        "title": "Add Custom Project"
+        "title": "Add Custom Project",
+        "category": "AutoRunDev"
       },
       {
         "command": "autorundev.remove",
-        "title": "Remove Project"
+        "title": "Remove Project",
+        "category": "AutoRunDev"
       },
       {
         "command": "autorundev.runAll",
-        "title": "Run All Projects"
+        "title": "Run All Projects",
+        "category": "AutoRunDev"
       },
       {
         "command": "autorundev.stop",
-        "title": "Stop All Projects"
+        "title": "Stop All Projects",
+        "category": "AutoRunDev"
       },
       {
         "command": "autorundev.restart",
-        "title": "Restart All Projects"
+        "title": "Restart All Projects",
+        "category": "AutoRunDev"
       }
-    ]
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "autorundev.start"
+        },
+        {
+          "command": "autorundev.autoconfig"
+        },
+        {
+          "command": "autorundev.add"
+        },
+        {
+          "command": "autorundev.remove"
+        },
+        {
+          "command": "autorundev.runAll"
+        },
+        {
+          "command": "autorundev.stop"
+        },
+        {
+          "command": "autorundev.restart"
+        }
+      ]
+    }
   },
   "scripts": {
     "lint": "eslint .",
