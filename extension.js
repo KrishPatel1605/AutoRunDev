@@ -714,7 +714,9 @@ function scanAllFolders(rootPath) {
   // First, check if the workspace root itself is a project
   const rootProjectConfig = detectProjectType(rootPath, '.');
   if (rootProjectConfig) {
-    config['workspace-root'] = rootProjectConfig;
+    // Use the actual workspace folder name instead of 'workspace-root'
+    const workspaceFolderName = path.basename(rootPath);
+    config[workspaceFolderName] = rootProjectConfig;
   }
 
   try {
