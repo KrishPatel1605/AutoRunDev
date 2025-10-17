@@ -23,7 +23,7 @@
     "theme": "dark"
   },
   "description": "VS Code extension for automatically detecting and managing multiple dev projects. Start, stop, and configure all your workspace projects from a single sidebar interface.",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.104.0"

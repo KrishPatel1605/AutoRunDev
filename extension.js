@@ -684,10 +684,16 @@ function readConfig(rootPath) {
 }
 
 /**
- * Scan all folders in root directory and detect projects
+ * Scan all folders in root directory and one level deeper to detect projects
  */
 function scanAllFolders(rootPath) {
   const config = {};
+
+  // First, check if the workspace root itself is a project
+  const rootProjectConfig = detectProjectType(rootPath, '.');
+  if (rootProjectConfig) {
+    config['workspace-root'] = rootProjectConfig;
+  }
 
   try {
     const items = fs.readdirSync(rootPath);
@@ -698,13 +704,41 @@ function scanAllFolders(rootPath) {
       // Check if it's a directory and not hidden/system folders
       if (fs.lstatSync(itemPath).isDirectory() &&
         !item.startsWith('.') &&
-        !item.startsWith('node_modules') &&
-        !item.startsWith('dist') &&
-        !item.startsWith('build')) {
+        item !== 'node_modules' &&
+        item !== 'dist' &&
+        item !== 'build') {
 
+        // Check if current folder is a project
         const projectConfig = detectProjectType(itemPath, item);
         if (projectConfig) {
           config[item] = projectConfig;
+        }
+
+        // Scan one level deeper
+        try {
+          const subItems = fs.readdirSync(itemPath);
+          
+          subItems.forEach(subItem => {
+            const subItemPath = path.join(itemPath, subItem);
+
+            // Check if subdirectory and not hidden/system folders
+            if (fs.lstatSync(subItemPath).isDirectory() &&
+              !subItem.startsWith('.') &&
+              subItem !== 'node_modules' &&
+              subItem !== 'dist' &&
+              subItem !== 'build') {
+
+              const subProjectConfig = detectProjectType(subItemPath, `${item}/${subItem}`);
+              if (subProjectConfig) {
+                // Use a combined name for nested projects
+                const nestedName = `${item}/${subItem}`;
+                config[nestedName] = subProjectConfig;
+              }
+            }
+          });
+        } catch (subError) {
+          // Skip if can't read subdirectory
+          console.warn(`Error scanning subdirectory ${item}:`, subError.message);
         }
       }
     });
