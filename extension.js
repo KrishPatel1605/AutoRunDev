@@ -477,7 +477,16 @@ function startProject(provider) {
   const rootPath = getWorkspaceRoot();
   if (!rootPath) return;
 
-  const config = readConfig(rootPath);
+  const configPath = path.join(rootPath, ".autorundev.json");
+  
+  // If config doesn't exist, generate it first
+  if (!fs.existsSync(configPath)) {
+    const config = scanAllFolders(rootPath);
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    vscode.window.showInformationMessage(".autorundev.json created by scanning all folders!");
+  }
+
+  const config = readConfigNoAutoCreate(rootPath);
 
   // Run all projects defined in config
   Object.keys(config).forEach(projectName => {
@@ -543,7 +552,7 @@ async function removeProject(provider) {
   const rootPath = getWorkspaceRoot();
   if (!rootPath) return;
 
-  const config = readConfig(rootPath);
+  const config = readConfigNoAutoCreate(rootPath);
   const projectNames = Object.keys(config);
 
   if (projectNames.length === 0) {
@@ -573,11 +582,11 @@ function runAllProjects(provider) {
   const rootPath = getWorkspaceRoot();
   if (!rootPath) return;
 
-  const config = readConfig(rootPath);
+  const config = readConfigNoAutoCreate(rootPath);
   const projectNames = Object.keys(config);
 
   if (projectNames.length === 0) {
-    vscode.window.showWarningMessage("No projects found in .autorundev.json");
+    vscode.window.showWarningMessage("No projects found in .autorundev.json. Click 'Scan for Projects' to detect projects automatically.");
     return;
   }
 
@@ -616,7 +625,7 @@ function playTerminal(name, provider) {
   const rootPath = getWorkspaceRoot();
   if (!rootPath) return;
 
-  const config = readConfig(rootPath);
+  const config = readConfigNoAutoCreate(rootPath);
   if (config[name]) {
     runInTerminal(name, config[name].path, config[name].start, rootPath);
     setTimeout(() => provider.updateTerminals(), 500);
@@ -670,14 +679,27 @@ function getWorkspaceRoot() {
   return workspaceFolders[0].uri.fsPath;
 }
 
+/**
+ * Read config without auto-creating it
+ */
+function readConfigNoAutoCreate(rootPath) {
+  const configPath = path.join(rootPath, ".autorundev.json");
+
+  if (!fs.existsSync(configPath)) {
+    return {};
+  }
+
+  return JSON.parse(fs.readFileSync(configPath, "utf-8"));
+}
+
+/**
+ * Read config - used only by updateTerminals to show current state
+ */
 function readConfig(rootPath) {
   const configPath = path.join(rootPath, ".autorundev.json");
 
   if (!fs.existsSync(configPath)) {
-    const config = scanAllFolders(rootPath);
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-    vscode.window.showInformationMessage(".autorundev.json created automatically by scanning all folders!");
-    return config;
+    return {};
   }
 
   return JSON.parse(fs.readFileSync(configPath, "utf-8"));
